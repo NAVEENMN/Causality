@@ -39,13 +39,13 @@ class State(object):
 	def run(self):
 		logging.info("Running graph simulation")
 		while True:
-			try:
-				yield self.env.process(self.state_a())
-				yield self.env.process(self.state_b())
-				yield self.env.process(self.state_c())
-			except simpy.Interrupt:
-				# When interrupted sample graph values
-				self.obs.add_an_observation(self.graph.get_values())
+			#try:
+			yield self.env.process(self.state_a())
+			yield self.env.process(self.state_b())
+			yield self.env.process(self.state_c())
+			#except simpy.Interrupt:
+			#	# When interrupted sample graph values
+			#	self.obs.add_an_observation(self.graph.get_values())
 
 	def state_a(self):
 		# Initialize graph independent variables aka source nodes.
@@ -74,12 +74,14 @@ class State(object):
 		for variable in independent_variables:
 			depth_first_traversal(self.graph, variable)
 
-		yield self.env.timeout(2)
+		yield self.env.timeout(1)
 
 	def state_c(self):
+		logging.info("*** Update: Get readings graph")
+		self.obs.add_an_observation(self.graph.get_values())
 		logging.info("*** Update: Resetting graph")
 		self.graph.reset()
-		yield self.env.timeout(3)
+		yield self.env.timeout(2)
 
 
 def sample_graph(env, cg, num_of_samples):
@@ -97,7 +99,7 @@ def save_graph(causal_graph, testing_graph, predicted_graph, step, attr=None):
 	Graph.draw_graph(testing_graph, axes=axes[1])
 	axes[2].set_title('Predicted Graph')
 	Graph.draw_graph(predicted_graph, axes=axes[2])
-	plt.show()
+	# plt.show()
 	fig.savefig(os.path.join(os.getcwd(), 'tmp', f'graph_{step}.png'))
 	plt.clf()
 	plt.close(fig)
@@ -111,8 +113,8 @@ def run_pc_algorithm(causal_graph, observations):
 	# case a: empty z
 	nodes = permutations(node_names, 2)
 	for (x, y) in nodes:
-		a, b = np.reshape(observations[x].to_numpy(), (-1, 1)), np.reshape(observations[y].to_numpy(), (-1, 1))
-		corr = np.corrcoef(a, b, rowvar=False)
+		corr = np.corrcoef(observations[x].to_numpy(), observations[x].to_numpy(), rowvar=False)
+
 		corr = corr[0][1]
 		if complete_graph.has_edge(x, y) and (np.abs(corr) < 0.9):
 			complete_graph.remove_edge(x, y)
@@ -128,6 +130,9 @@ def run_pc_algorithm(causal_graph, observations):
 	nodes = permutations(node_names, 3)
 	for (x, y, z) in nodes:
 		# print(f'Partial correlation between {(x, y)} and {z}')
+		_x = observations[x].to_numpy()
+		_y = observations[y].to_numpy()
+		_z = observations[z].to_numpy()
 		df = pd.DataFrame({'x': observations[x], 'y': observations[y], 'z': observations[z]})
 		result = pg.partial_corr(data=df, x='x', y='y', covar='z').round(3)
 		p_value, r_value = result['p-val']['pearson'], result['r']['pearson']
@@ -159,7 +164,7 @@ def main():
 	cg = State(env, obs, causal_graph)
 
 	# Randomly sample the graph
-	env.process(sample_graph(env, cg, num_of_samples=100))
+	# env.process(sample_graph(env, cg, num_of_samples=100))
 
 	# Run simulation
 	env.run(until=500)
