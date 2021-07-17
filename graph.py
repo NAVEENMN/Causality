@@ -1,6 +1,10 @@
+import os
 import random
 import numpy as np
 import networkx as nx
+
+np.random.seed(0)
+
 
 class Graph(object):
     def __init__(self, nx_graph):
@@ -10,12 +14,20 @@ class Graph(object):
         self.font_color = '#D9D9D9'
         self.edge_color = '#262626'
 
+    def load_graph(self, path="data/graph.edgelist"):
+        self.graph = nx.read_edgelist(path,
+                                      create_using=nx.DiGraph)
+
     def add_node_to_graph(self, node):
         self.graph.add_node(node, value=np.random.randn()/10000.0)
 
     def add_an_edge_to_graph(self, node_a, node_b):
+        # edge is a linear function v(node_b) = v(node_a) * _w + _c
+        _w = random.choice([1, -1]) * np.random.normal(2, 0.5, 1)
+        _c = np.random.normal(0, 1, 1)
         self.graph.add_edge(node_a, node_b, color=self.edge_color,
-                            weight=np.random.normal(0, 1, 1), capacity=np.random.normal(0, 1, 1))
+                            weight=_w.item(0),
+                            capacity=_c.item(0))
 
     def get_graph(self):
         return self.graph
@@ -62,12 +74,20 @@ class Graph(object):
     def get_nodes(self):
         return self.graph.nodes()
 
+    def get_all_parents(self):
+        _parents = []
+        for node in self.graph.nodes():
+            if self.graph.out_degree(node) > 0:
+                _parents.append(node)
+        return _parents
+
     @classmethod
     def draw_graph(cls, _graph, axes):
         nx.draw(_graph, nx.circular_layout(_graph),
                 with_labels=True,
                 node_size=500,
                 ax=axes)
+
 
 class CausalGraph(Graph):
     def __init__(self):
@@ -79,6 +99,9 @@ class CausalGraph(Graph):
 
     def __repr__(self):
         return self.get_graph()
+
+    def load_graph_from(self, path=None):
+        self.load_graph()
 
     def set_properties(self, left_mediators_count=0,
                        right_mediators_count=0,
@@ -118,12 +141,14 @@ class CausalGraph(Graph):
         else:
             print('Unsupported element')
 
+        '''
         if _node:
             link = random.sample([x, y, z], 1)[0]
             if random.randint(0, 1):
                 self.add_an_edge_to_graph(_node, link)
             else:
                 self.add_an_edge_to_graph(link, _node)
+        '''
 
     def generate_random_graph(self):
         for _ in range(self.left_mediators_count):
@@ -157,3 +182,7 @@ class CausalGraph(Graph):
                 width=list(weights),
                 node_size=500,
                 ax=axes)
+
+    def save(self, loc="data"):
+        nx.write_adjlist(self.graph, os.path.join(loc, 'graph.adjlist'))
+        nx.write_edgelist(self.graph, os.path.join(loc, 'graph.edgelist'))
