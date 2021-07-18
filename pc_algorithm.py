@@ -107,7 +107,7 @@ class PC(object):
                 # print(f'{x, y} - {p_value} - {r_value}')
                 # If observed p value is greater than threshold (self.p_value)
                 # We have stronger confidence in rejecting the null hypothesis
-                # null hypothesis is that there exists a link between x and y
+                # null hypothesis is that there doesnt exists a link between x and y
                 logging.info(f'{p_value}, {self.p_value} ')
                 if complete_graph.has_edge(x, y):
                     complete_graph.remove_edge(x, y)
