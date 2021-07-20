@@ -100,8 +100,8 @@ class CausalGraph(Graph):
     def __repr__(self):
         return self.get_graph()
 
-    def load_graph_from(self, path=None):
-        self.load_graph()
+    def load_saved_graph(self, path):
+        self.load_graph(path=path)
 
     def set_properties(self, left_mediators_count=0,
                        right_mediators_count=0,
