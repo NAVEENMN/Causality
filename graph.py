@@ -19,7 +19,8 @@ class Graph(object):
                                       create_using=nx.DiGraph)
 
     def add_node_to_graph(self, node):
-        self.graph.add_node(node, value=np.random.randn()/10000.0)
+        _noise = np.random.normal(0, 1, 1).item()/10000.0
+        self.graph.add_node(node, value=_noise)
 
     def add_an_edge_to_graph(self, node_a, node_b):
         # edge is a linear function v(node_b) = v(node_a) * _w + _c

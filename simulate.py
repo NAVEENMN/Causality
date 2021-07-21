@@ -79,9 +79,9 @@ class CGSimulation(object):
 def main():
     # Generate a random causal graph with certain properties
     causal_graph = CausalGraph()
-    causal_graph.load_saved_graph(path='data/graph.edgelist')
+    #causal_graph.load_saved_graph(path='data/graph.edgelist')
 
-    """
+
     causal_graph.set_properties(left_mediators_count=1,
                                 right_mediators_count=0,
                                 forks_count=1,
@@ -89,7 +89,7 @@ def main():
     
     causal_graph.generate_random_graph()
     causal_graph.save()
-    """
+
 
     # Setup simulation environment and record observations
     obs = Observations(columns=causal_graph.get_node_names())
